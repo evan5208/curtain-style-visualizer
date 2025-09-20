@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Curtain Style Visualizer | LuxDrape</title>
+  <meta name="description" content="Simple curtain style visualizer for custom curtains. Preview eyelet, pinch pleat, rod pocket, and ripple fold headings." />
+  <meta name="robots" content="index,follow" />
+  <style>
+    :root{
+      --bg:#f6f8fb; --card:#fff; --ink:#222; --muted:#566; --line:#e5e7eb; --brand:#0b73f5;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:Arial,ui-sans-serif,system-ui; background:var(--bg); color:var(--ink)}
+    a{color:var(--brand); text-decoration:none} a:hover{text-decoration:underline}
+    header{background:var(--card); border-bottom:1px solid var(--line)}
+    .wrap{max-width:1000px; margin:0 auto; padding:22px}
+    h1{margin:0 0 6px; font-size:24px}
+    p.lead{margin:6px 0 0; color:#555}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin:18px 0}
+    label{display:block; margin-top:8px; font-size:14px}
+    select{width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:8px}
+    .stage{height:300px; border:1px dashed #cbd5e1; border-radius:12px; background:#fbfdff; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden}
+    .note{color:#555; font-size:14px}
+    .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:14px}
+    .col-6{grid-column:span 6} .col-12{grid-column:span 12}
+    @media (max-width:860px){ .col-6{grid-column:span 12} }
+
+    /* --- SVG reset --- */
+    svg{width:100%; height:100%}
+    .btn{display:inline-block; padding:10px 16px; border-radius:8px; text-decoration:none}
+    .btn.primary{background:var(--brand); color:#fff}
+    footer{color:#777; text-align:center; padding:26px 0 40px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Curtain Style Visualizer</h1>
+      <p class="lead">
+        Explore popular heading styles for <strong>custom curtains</strong>. Choose a style to preview a simple illustration,
+        then visit <a href="https://luxdrape.com/" target="_blank" rel="noopener">LuxDrape</a> to order.
+      </p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <div class="grid">
+        <div class="col-6">
+          <label for="style">Heading style</label>
+          <select id="style" aria-label="Curtain heading style">
+            <option value="eyelet">Eyelet (Grommet)</option>
+            <option value="pinch" selected>Pinch Pleat</option>
+            <option value="pocket">Rod Pocket</option>
+            <option value="ripple">Ripple Fold</option>
+          </select>
+
+          <p class="note" id="desc" style="margin-top:12px">
+            Pinch Pleat: tailored pleats with hooks/rings for a structured, classic look.
+          </p>
+
+          <div style="margin-top:14px">
+            <a class="btn primary" href="https://luxdrape.com/" target="_blank" rel="noopener">Order at LuxDrape ↗</a>
+          </div>
+        </div>
+
+        <div class="col-6">
+          <div class="stage" aria-label="Style preview">
+            <!-- SVG preview -->
+            <svg viewBox="0 0 600 360" role="img" aria-labelledby="title">
+              <title id="title">Curtain style preview</title>
+
+              <!-- Wall -->
+              <rect x="0" y="0" width="600" height="360" fill="#f2f6ff"/>
+              <!-- Window -->
+              <rect x="110" y="70" width="380" height="200" rx="8" fill="#e7f1ff" stroke="#cdd9ed"/>
+              <line x1="110" y1="170" x2="490" y2="170" stroke="#cdd9ed"/>
+              <line x1="300" y1="70"  x2="300" y2="270" stroke="#cdd9ed"/>
+
+              <!-- Rod -->
+              <rect x="60" y="42" width="480" height="8" rx="4" fill="#333"/>
+
+              <!-- Group that changes with style -->
+              <g id="curtainGroup"></g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="margin:0 0 10px">Helpful links</h2>
+      <ul style="margin:0; padding-left:18px">
+        <li><a href="https://luxdrape.com/" target="_blank" rel="noopener">Custom Curtains — LuxDrape</a></li>
+        <li><a href="https://luxdrape.com/collections/linen" target="_blank" rel="noopener">Linen Custom Curtains</a></li>
+        <li><a href="https://luxdrape.com/collections/velvet" target="_blank" rel="noopener">Velvet Custom Curtains</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    © <span id="y"></span> LuxDrape • Clean backlinks to
+    <a href="https://luxdrape.com/" target="_blank" rel="noopener">LuxDrape</a>.
+  </footer>
+
+  <script>
+    const y = document.getElementById('y'); y.textContent = new Date().getFullYear();
+    const styleSel = document.getElementById('style');
+    const desc = document.getElementById('desc');
+    const group = document.getElementById('curtainGroup');
+
+    function draw(style){
+      // clear group
+      group.innerHTML = "";
+
+      // shared drapery body generator
+      function panelPath(waveWidth, waveAmp, xStart, xEnd, yTop, yBot){
+        // make a wavy path between xStart..xEnd
+        const steps = Math.max(6, Math.round((xEnd-xStart)/waveWidth));
+        const dx = (xEnd-xStart)/steps;
+        let d = `M ${xStart} ${yTop}`;
+        for(let i=1;i<=steps;i++){
+          const x = xStart + i*dx;
+          const dir = i%2===0 ? -1 : 1;
+          const cy = yTop + waveAmp*dir;
+          d += ` Q ${x-dx/2} ${cy} ${x} ${yTop}`;
+        }
+        d += ` L ${xEnd} ${yBot}`;
+        for(let i=steps;i>=1;i--){
+          const x = xStart + (i-1)*dx;
+          const dir = i%2===0 ? 1 : -1;
+          const cy = yBot + waveAmp*dir;
+          d += ` Q ${x+dx/2} ${cy} ${x} ${yBot}`;
+        }
+        d += " Z";
+        return d;
+      }
+
+      // style-specific drawings
+      if(style === "eyelet"){
+        desc.textContent = "Eyelet (Grommet): crisp waves running through metal grommets on the rod.";
+        // fabric
+        const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+        path.setAttribute("d", panelPath(36, 10, 90, 510, 52, 310));
+        path.setAttribute("fill","#e5ecf8");
+        group.appendChild(path);
+        // grommets
+        for(let x=110; x<=490; x+=48){
+          const ring = document.createElementNS("http://www.w3.org/2000/svg","circle");
+          ring.setAttribute("cx", x); ring.setAttribute("cy", 46); ring.setAttribute("r", 8);
+          ring.setAttribute("fill", "#d6dde9"); ring.setAttribute("stroke","#9aa6b2");
+          group.appendChild(ring);
+        }
+      }
+
+      if(style === "pinch"){
+        desc.textContent = "Pinch Pleat: tailored pleats with hooks/rings; structured and classic.";
+        // panels with tighter waves
+        const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+        path.setAttribute("d", panelPath(24, 8, 90, 510, 52, 310));
+        path.setAttribute("fill","#e9eef9");
+        group.appendChild(path);
+        // small pleat stitches
+        for(let x=110; x<=490; x+=32){
+          const pleat = document.createElementNS("http://www.w3.org/2000/svg","rect");
+          pleat.setAttribute("x", x-2); pleat.setAttribute("y", 52);
+          pleat.setAttribute("width", 4); pleat.setAttribute("height", 18);
+          pleat.setAttribute("fill", "#c8d3ea");
+          group.appendChild(pleat);
+        }
+      }
+
+      if(style === "pocket"){
+        desc.textContent = "Rod Pocket: soft gathers created by sliding the pocket over the rod.";
+        const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+        path.setAttribute("d", panelPath(16, 6, 90, 510, 60, 320));
+        path.setAttribute("fill","#eef2fb");
+        group.appendChild(path);
+        // pocket band
+        const band = document.createElementNS("http://www.w3.org/2000/svg","rect");
+        band.setAttribute("x","90"); band.setAttribute("y","52");
+        band.setAttribute("width","420"); band.setAttribute("height","14");
+        band.setAttribute("fill","#dbe5f7");
+        group.appendChild(band);
+      }
+
+      if(style === "ripple"){
+        desc.textContent = "Ripple Fold: even S-curves riding on carriers under the rod; modern and clean.";
+        const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+        path.setAttribute("d", panelPath(40, 14, 90, 510, 62, 310));
+        path.setAttribute("fill","#e7effc");
+        group.appendChild(path);
+        // carriers
+        for(let x=110; x<=490; x+=40){
+          const c = document.createElementNS("http://www.w3.org/2000/svg","rect");
+          c.setAttribute("x", x-3); c.setAttribute("y", 50);
+          c.setAttribute("width", 6); c.setAttribute("height", 10);
+          c.setAttribute("fill", "#9aa6b2");
+          group.appendChild(c);
+        }
+      }
+    }
+
+    // init + events
+    draw(styleSel.value);
+    styleSel.addEventListener('change', e => draw(e.target.value));
+  </script>
+</body>
+</html>
