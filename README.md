@@ -3,7 +3,7 @@
 **Live Demo:** https://evan5208.github.io/curtain-style-visualizer/  
 **Order Custom Curtains:** [LuxDrape](https://luxdrape.com/)
 
-A simple **curtain style visualizer** to help users explore different heading types for **custom curtains**.  
+A simple **curtain style visualizer** to help users explore different heading types for [custom curtains](https://luxdrape.com/).  
 Choose from popular styles like eyelet, pinch pleat, rod pocket, and ripple fold, and see a demo illustration instantly.  
 
 ---
@@ -12,7 +12,7 @@ Choose from popular styles like eyelet, pinch pleat, rod pocket, and ripple fold
 - Four popular curtain heading styles: Eyelet, Pinch Pleat, Rod Pocket, Ripple Fold  
 - Instant visual preview (SVG-based, no extra libraries required)  
 - Lightweight, responsive, mobile-friendly design  
-- Direct links to [LuxDrape](https://luxdrape.com/) for ordering **custom curtains**  
+- Direct links to [LuxDrape](https://luxdrape.com/) for ordering [custom curtains](https://luxdrape.com/)  
 
 ---
 
